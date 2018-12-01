@@ -6,7 +6,7 @@ var Parse = {
 
     $.ajax({
       url: Parse.server,
-      type: 'POST',
+      method: 'POST',
       data: JSON.stringify(message),
       contentType: 'application/json',
       success: successCB,
@@ -19,7 +19,7 @@ var Parse = {
   readAll: function(successCB, errorCB = null) {
     $.ajax({
       url: Parse.server,
-      type: 'GET',
+      method: 'GET',
       data: { order: '-createdAt' },
       contentType: 'application/json',
       success: successCB,
