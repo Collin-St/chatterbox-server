@@ -11,7 +11,9 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var jack = {
+const url = require('url');
+
+var store = {
   results: []
 }
 // console.log(messages)
@@ -32,7 +34,7 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
   
-  let statusCode;
+  var statusCode;
   
   var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
@@ -44,7 +46,9 @@ var requestHandler = function(request, response) {
 var headers = defaultCorsHeaders;
 
 headers['Content-Type'] = 'application/json';
-let path = require('url').parse(request.url).pathname;
+// headers['Content-Type'] = 'text/plain';
+// var path = require('url').parse(request.url).pathname;
+var path = url.parse(request.url).pathname;
   // console.log("path:", path);
 // if (request.url !== '/classes/messages') {
 //   // set status to 404
@@ -59,7 +63,8 @@ let path = require('url').parse(request.url).pathname;
       //set status 200
       statusCode = 200;
       response.writeHead(statusCode, headers);
-      response.end(JSON.stringify(jack));
+      console.log("our store before we send it to you" + JSON.stringify(store))
+      response.end(JSON.stringify(store));
       // handle POST
     } else if( request.method === 'POST'){
       //set status 201
@@ -67,22 +72,25 @@ let path = require('url').parse(request.url).pathname;
       console.log(request,'kdjkfd');
       //save the message to store
       var body = [];
-        request.on('data', (chunk) => {
-          body.push(chunk);
-        }).on('end', () => {
-          body = Buffer.concat(body).toString();
-          var bodyObj = JSON.parse(body);
-          console.log(bodyObj)
-          jack.results.push(bodyObj);
-        });
+      var bodyObj;
+      request.on('data', (chunk) => {
+        body.push(chunk);
+      }).on('end', () => {
+        body = Buffer.concat(body).toString();
+        bodyObj = JSON.parse(body);
+        bodyObj.objectId = store.results.length;
+        //console.log(bodyObj)
+        store.results.push(bodyObj);
+      });
         response.writeHead(statusCode, headers);
-        response.end();
+        response.end(JSON.stringify(bodyObj));
       // handle OPTIONS
     } else if (request.method === 'OPTIONS') {
        //set status 200
        console.log('i am in');
       statusCode = 200;
       //write to head some special stuff
+      
       response.writeHead(statusCode, headers);
       response.end()
      } 
@@ -92,7 +100,7 @@ let path = require('url').parse(request.url).pathname;
     response.writeHead(statusCode, headers);
     response.end();
   } 
-  
+  //response.end(JSON.stringify(store));
 
 
 //  The outgoing status.
