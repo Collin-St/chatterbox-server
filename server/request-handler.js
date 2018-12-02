@@ -40,22 +40,14 @@ var requestHandler = function(request, response) {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, OPTIONS',
   'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
+  'access-control-max-age': 10, // Seconds.
+  'Content-Type': 'application/json'
 };
 
 var headers = defaultCorsHeaders;
 
-headers['Content-Type'] = 'application/json';
-// headers['Content-Type'] = 'text/plain';
-// var path = require('url').parse(request.url).pathname;
 var path = url.parse(request.url).pathname;
-  // console.log("path:", path);
-// if (request.url !== '/classes/messages') {
-//   // set status to 404
-//   statusCode = 404;
-//   response.end()
-// }http://127.0.0.1:3000/arglebargle
-  // /classes/messages?order=-createdAt
+
   //if url matches
   if(path === '/classes/messages') {
     // handle GET
@@ -63,13 +55,13 @@ var path = url.parse(request.url).pathname;
       //set status 200
       statusCode = 200;
       response.writeHead(statusCode, headers);
-      console.log("our store before we send it to you" + JSON.stringify(store))
+      // console.log("our store before we send it to you" + JSON.stringify(store))
       response.end(JSON.stringify(store));
       // handle POST
     } else if( request.method === 'POST'){
       //set status 201
       statusCode = 201;
-      console.log(request,'kdjkfd');
+      // console.log(request,'kdjkfd');
       //save the message to store
       var body = [];
       var bodyObj;
@@ -77,60 +69,48 @@ var path = url.parse(request.url).pathname;
         body.push(chunk);
       }).on('end', () => {
         body = Buffer.concat(body).toString();
-        bodyObj = JSON.parse(body);
-        bodyObj.objectId = store.results.length;
+        try{
+          bodyObj = JSON.parse(body);
+          bodyObj.objectId = store.results.length;
+          store.results.push(bodyObj);
+          response.writeHead(statusCode, headers);
+          response.end(JSON.stringify(bodyObj));
+
+        }catch(error){
+          statusCode = 400;
+          response.writeHead(statusCode,headers);
+          response.end();
+          console.log(error);
+        }
         //console.log(bodyObj)
-        store.results.push(bodyObj);
       });
-        response.writeHead(statusCode, headers);
-        response.end(JSON.stringify(bodyObj));
       // handle OPTIONS
     } else if (request.method === 'OPTIONS') {
        //set status 200
-       console.log('i am in');
+      //  console.log('i am in');
       statusCode = 200;
       //write to head some special stuff
       
       response.writeHead(statusCode, headers);
       response.end()
      } 
-  } else {
+  } else if (path !== '/classes/messages') {
     // console.log("this is bad:" + path);
     statusCode = 404;
     response.writeHead(statusCode, headers);
     response.end();
   } 
-  //response.end(JSON.stringify(store));
+  // else {
+  //   statusCode = 400;
+  // }
+};
+module.exports.requestHandler = requestHandler;
+
 
 
 //  The outgoing status.
 /////////////////////////////////////////////////////////////////////////////////////////
-  // var statusCode = 404;
-  
-  // if (request.method === 'OPTIONS') {
-  //   statusCode = 200;
-  //    response.writeHead(statusCode, {Allow :'GET, POST, PUT, DELETE, OPTIONS'});
-  //   response.end(); 
-  // } else {
-  //   if (request.method === 'GET' && request.url === "/classes/messages") {
-  //     statusCode = 200;
-      
-  //   } else {
-  //     if (request.method === 'POST') {
-  //       statusCode = 201;
-  //       var body = [];
-  //       request.on('data', (chunk) => {
-  //         body.push(chunk);
-  //       }).on('end', () => {
-  //         body = Buffer.concat(body).toString();
-  //         var bodyObj = JSON.parse(body);
-  //         messages.push(bodyObj);
-  //       })
-  //     }
-  //   }
-  //   //response.end();
-  // }
-//////////////////////////////////////////////////////////////////////////////////////////
+
   // See the note below about CORS headers.
   // var headers = defaultCorsHeaders;
 
@@ -152,18 +132,7 @@ var path = url.parse(request.url).pathname;
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  
-  
-  // response.end(JSON.stringify({response}));
-// if (statusCode === 200 || statusCode === 201) {
-// // if (request.method === 'GET' || request.method === 'POST') {
-//     response.end(JSON.stringify({
-//       response: '{Hello}',
-//       results: messages
-//       })
-//     );
-//   }
-};
+
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
@@ -181,5 +150,4 @@ var path = url.parse(request.url).pathname;
 //   'access-control-max-age': 10 // Seconds.
 // };
 
-module.exports.requestHandler = requestHandler;
 

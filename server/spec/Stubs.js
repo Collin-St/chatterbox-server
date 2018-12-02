@@ -18,15 +18,16 @@ module.exports = {
     }.bind(this);
   },
 
-  request: function(url, method, postdata) {
+  request: function(url, method, postdata, notStringify) {
     this.url = url;
     this.method = method;
     this._postData = postdata;
+    this._stringified = JSON.stringify(this._postData)
     this.setEncoding = function() { /* noop */ };
 
     this.addListener = this.on = function(type, callback) {
       if (type === 'data') {
-        callback(Buffer(JSON.stringify(this._postData)));
+        callback(Buffer(notStringify || this._stringified));
       }
 
       if (type === 'end') {
